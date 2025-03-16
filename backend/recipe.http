@@ -1,0 +1,16 @@
+### Create a new recipe (Requires authentication - Replace `<your_token>`)
+POST http://localhost:5000/api/recipes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmZlZGZmZjUwMWFiN2Q2ZDRlYjU0NCIsImlhdCI6MTc0MTk0OTM1OSwiZXhwIjoxNzQyNTU0MTU5fQ.lDLS94sHR_L6W6U6JTiZN8_uK2-M00FW3iWMXBBQzYc
+
+{
+  "name": "Grilled Salmon with Vegetables",
+  "ingredients": [
+  { "food": "67d27e40c5715dffe86acb46", "quantity": 150 }
+  ],
+  "instructions": "Grill the salmon and serve with steamed vegetables."
+}
+
+### Get recommended recipes for a user (Requires authentication)
+GET http://localhost:5000/api/recipes/recommended/user?limit=3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmZlZGZmZjUwMWFiN2Q2ZDRlYjU0NCIsImlhdCI6MTc0MTk0OTM1OSwiZXhwIjoxNzQyNTU0MTU5fQ.lDLS94sHR_L6W6U6JTiZN8_uK2-M00FW3iWMXBBQzYc

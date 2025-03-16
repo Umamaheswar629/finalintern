@@ -1,0 +1,115 @@
+POST http://localhost:5000/api/users/register
+Content-Type: application/json
+
+{
+  "name": "John ",
+  "email": "johnn@example.com",
+  "password": "12345678",
+  "age": 25,
+  "gender": "Male",
+  "height": 175,
+  "weight": 70,
+  "activityLevel": "Moderate",
+  "goal": "Lose Weight",
+  "dietaryPreferences": ["Vegetarian"],
+  "allergens": ["Peanuts"]
+}
+
+###
+POST http://localhost:5000/api/users/login
+Content-Type: application/json
+
+{
+  "email": "johnn@example.com",
+  "password": "12345678"
+}
+
+###
+GET http://localhost:5000/api/users/profile
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmZlZGZmZjUwMWFiN2Q2ZDRlYjU0NCIsImlhdCI6MTc0MDYzMTU1OSwiZXhwIjoxNzQxMjM2MzU5fQ.ljQ9uON79qznYbFf7i19D4T0w_XIjhIPfKvA0bmT-JI
+
+
+
+###
+# 1. Get All Foods (Public)
+GET http://localhost:5000/api/foods
+Content-Type: application/json
+
+###
+
+# 2. Create New Food (Requires Auth)
+POST http://localhost:5000/api/foods
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmZlZGZmZjUwMWFiN2Q2ZDRlYjU0NCIsImlhdCI6MTc0MDYzMTU1OSwiZXhwIjoxNzQxMjM2MzU5fQ.ljQ9uON79qznYbFf7i19D4T0w_XIjhIPfKvA0bmT-JI
+
+{
+  "name": "Brown Rice",
+  "category": "Grains",
+  "calories": 111,
+  "macronutrients": {
+    "protein": 2.6,
+    "carbs": 23,
+    "fats": 0.9
+  },
+  "servingSize": "100g"
+}
+
+###
+
+# 3. Get Food by ID (Replace {foodId} with a valid ID)
+GET http://localhost:5000/api/foods/67bffa45db6a268873031ba8
+Content-Type: application/json
+
+###
+
+# 4. Update Food (Replace {foodId} with a valid ID, Requires Auth)
+PUT http://localhost:5000/api/foods/67bffa45db6a268873031ba8
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmZlZGZmZjUwMWFiN2Q2ZDRlYjU0NCIsImlhdCI6MTc0MDYzMTU1OSwiZXhwIjoxNzQxMjM2MzU5fQ.ljQ9uON79qznYbFf7i19D4T0w_XIjhIPfKvA0bmT-JI
+
+{
+  "name": "Brown Rice (Updated)"
+}
+
+###
+
+# 5. Delete Food (Replace {foodId} with a valid ID, Requires Auth)
+DELETE http://localhost:5000/api/foods/67bffa45db6a268873031ba8
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmZlZGZmZjUwMWFiN2Q2ZDRlYjU0NCIsImlhdCI6MTc0MDYzMTU1OSwiZXhwIjoxNzQxMjM2MzU5fQ.ljQ9uON79qznYbFf7i19D4T0w_XIjhIPfKvA0bmT-JI
+
+
+
+### Get all recipes
+GET http://localhost:5000/api/recipes
+Accept: application/json
+
+### Get a specific recipe by ID (Replace `<recipe_id>` with a real ID)
+GET http://localhost:5000/api/recipes/67d3d080c5715dffe86acb4c
+Accept: application/json
+
+
+
+### Update a recipe (Replace `<recipe_id>`)
+PUT http://localhost:5000/api/recipes/67d40c60f08701be5ff684da
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmZlZGZmZjUwMWFiN2Q2ZDRlYjU0NCIsImlhdCI6MTc0MTk0OTM1OSwiZXhwIjoxNzQyNTU0MTU5fQ.lDLS94sHR_L6W6U6JTiZN8_uK2-M00FW3iWMXBBQzYc
+
+{
+  "name": "Updated Grilled Salmon",
+  "instructions": "Pan-sear the salmon instead of grilling."
+}
+
+### Delete a recipe (Replace `<recipe_id>`)
+DELETE http://localhost:5000/api/recipes/67d40c60f08701be5ff684da
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YmZlZGZmZjUwMWFiN2Q2ZDRlYjU0NCIsImlhdCI6MTc0MTk0OTM1OSwiZXhwIjoxNzQyNTU0MTU5fQ.lDLS94sHR_L6W6U6JTiZN8_uK2-M00FW3iWMXBBQzYc
+
+
+### Search recipes by name or ingredient (e.g., "Salmon")
+GET http://localhost:5000/api/recipes/search?query=Salmon
+Accept: application/json
+
+### Filter recipes based on macronutrients
+GET http://localhost:5000/api/recipes/filter?minProtein=50&maxCarbs=20
+Accept: application/json
