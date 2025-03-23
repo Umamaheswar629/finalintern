@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, enum: ["Male", "Female", "Other"], required: true },
   height: { type: Number, required: true }, // in cm
   weight: { type: Number, required: true }, // in kg
-  activityLevel: { type: String, enum: ["Sedentary", "Lightly Active", "Moderate", "Active", "Very Active"], required: true },
+  activityLevel: { type: String, enum: ["Sedentary", "Lightly Active", "Moderately Active", "Very Active", "Extra Active"], required: true },
   goal: { type: String, enum: ["Lose weight", "Maintain weight", "Gain weight"], required: true },
   dietType: [{ type: String }], // e.g., ["Vegetarian", "Keto", "Gluten-Free"]
   allergies: [{ type: String }], // e.g., ["Peanuts", "Dairy"]

@@ -14,8 +14,18 @@ const nutritionalRequirementRoutes = require("./APIs/nutritionalRequirementsRout
 
 const app = express();
 
+const corsOptions = {
+  origin: "http://localhost:3000", // ✅ Allow frontend access
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true, // ✅ Allow cookies/auth headers
+  allowedHeaders: "Content-Type,Authorization",
+};
+
+app.use(cors(corsOptions));
+
+
 // Middleware
-app.use(cors());
+
 app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/Foods",foodRoutes);

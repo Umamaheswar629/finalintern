@@ -1,5 +1,5 @@
 // src/App.js
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -14,8 +14,8 @@ import DashboardPage from './pages/DashboardPage';
 import MealPlannerPage from './pages/MealPlannerPage';
 import SavedPlansPage from './pages/SavedPlansPage';
 import HowItWorksPage from './pages/HowItWorksPage';
-import Login from './pages/LoginPage';
-import SignUp from './pages/SignUpPage';
+import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
 import GroceriesPage from './pages/GroceriesPage';
 import DiscoverPage from './pages/DiscoverPage';
 import RecipesPage from './pages/RecipesPage';
@@ -26,9 +26,22 @@ import PrivateRoute from "./routes/PrivateRoute";
 
 function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // ✅ Remove token
+    localStorage.removeItem("userInfo"); // ✅ Clear user data
+    setIsAuthenticated(false);
+    window.location.href = "/login"; // ✅ Redirect to login
   };
 
   return (
@@ -36,9 +49,8 @@ function App() {
       <CssBaseline />
       <Router>
         <Routes>
-         <Route path="/groceries" element={<GroceriesPage />} />
-        <Route path="register" element={<SignUp />} />
-        <Route path="login" element={<Login />} />
+        <Route path="register" element={<SignUpPage />} />
+        <Route path="login" element={<LoginPage />} />
           {/* Landing page route */}
           <Route 
             path="/" 
@@ -54,10 +66,10 @@ function App() {
           />
           
           {/* Dashboard and app routes with sidebar */}
+          <Route element={<PrivateRoute />}>
           <Route
             path="/dashboard/*"
             element={
-              <PrivateRoute>
               <Box sx={{ display: 'flex' }}>
                 <Sidebar mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
                 <Box 
@@ -88,7 +100,7 @@ function App() {
                       <MenuIcon />
                     </IconButton>
                   </Box>
-                  
+                  <Toolbar />
                   <Routes>
                     <Route index element={<DashboardPage />} />
                     <Route path="account" element={<AccountPage />} />
@@ -104,9 +116,9 @@ function App() {
                   </Routes>
                 </Box>
               </Box>
-              </PrivateRoute>
             }
           />
+          </Route>
           
           {/* Redirects */}
           <Route path="/login" element={<Navigate to="/dashboard/login" replace />} />

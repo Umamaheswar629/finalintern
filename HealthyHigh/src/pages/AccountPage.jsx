@@ -1,5 +1,7 @@
 // src/pages/AccountPage.jsx
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
+import axios from 'axios';
+
 import { 
   Box, 
   Container, 
@@ -26,27 +28,39 @@ import SecurityIcon from '@mui/icons-material/Security';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+
 const AccountPage = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [editMode, setEditMode] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Mock user data - replace with actual user data in a real implementation
-  const [userData, setUserData] = useState({
-    name: 'Mohith Manne',
-    username: 'mannemohith',
-    email: 'mohith@example.com',
-    phone: '+1 (555) 123-4567',
-    dateJoined: 'January 15, 2024',
-    dietaryPreferences: 'Vegetarian',
-    allergies: 'Peanuts, Shellfish',
-    calorieGoal: '2000',
-    weightGoal: 'Maintain',
-    notifications: true,
-    emailUpdates: true,
-    mealReminders: true
-  });
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API_BASE_URL}/users/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUserData(response.data);
+      } catch (err) {
+        setError("Failed to load profile. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>{error}</p>;
 
   // Handle tab change
   const handleTabChange = (event, newValue) => {
@@ -82,6 +96,19 @@ const AccountPage = () => {
       setSuccessMessage('');
     }, 3000);
   };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${API_BASE_URL}/users/logout`);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+    
+    localStorage.removeItem("token");
+    localStorage.removeItem("userInfo");
+    window.location.href = "/login"; // Redirect to login page
+  };
+  
 
   return (
     <Box sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -345,7 +372,7 @@ const AccountPage = () => {
                         fullWidth
                         label="Dietary Preferences"
                         name="dietaryPreferences"
-                        value={userData.dietaryPreferences}
+                        value={userData.dietType}
                         onChange={handleInputChange}
                         disabled={!editMode}
                         placeholder="e.g., Vegetarian, Vegan, Keto, Paleo"
@@ -389,9 +416,9 @@ const AccountPage = () => {
                           native: true,
                         }}
                       >
-                        <option value="Lose">Lose Weight</option>
-                        <option value="Maintain">Maintain Weight</option>
-                        <option value="Gain">Gain Weight</option>
+                        <option value="Lose Weight">Lose Weight</option>
+                        <option value="Maintain Weight">Maintain Weight</option>
+                        <option value="Gain Weight">Gain Weight</option>
                       </TextField>
                     </Grid>
                     

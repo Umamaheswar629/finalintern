@@ -13,7 +13,11 @@ import {
   IconButton,
   Link,
   Grid,
-  Avatar
+  Avatar,
+  Alert,
+  Checkbox,
+  FormControlLabel,
+  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -26,11 +30,14 @@ import AppleIcon from '@mui/icons-material/Apple';
 const LoginPage = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,10 +52,17 @@ const LoginPage = () => {
         [name]: '',
       });
     }
+    if (apiError) {
+      setApiError('');
+    }
   };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handleRememberMeChange = (e) => {
+    setRememberMe(e.target.checked);
   };
 
   const validate = () => {
@@ -74,25 +88,54 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validate()) return; // Stop if validation fails
+  
+    setIsLoading(true);
+    setApiError("");
   
     try {
-      const response = await fetch("http://localhost:5000/api/users/login", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+        credentials: "include", // ✅ Required for auth
       });
   
       const data = await response.json();
-      if (response.ok) {
-        localStorage.setItem("token", data.token);
-        alert("Login successful!");
-        navigate("/dashboard"); // Redirect to dashboard
-      } else {
-        alert(data.message);
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed.");
       }
+  
+      // ✅ Store token securely
+      if (rememberMe) {
+        localStorage.setItem("token", data.token);
+      } else {
+        sessionStorage.setItem("token", data.token);
+      }
+  
+      // ✅ Store minimal user info
+      localStorage.setItem("userInfo", JSON.stringify({
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+      }));
+  
+      navigate("/dashboard"); // ✅ Redirect on success
+  
     } catch (error) {
-      console.error("Login Error:", error);
-      alert("Login failed. Please try again.");
+      console.error("Login Error:", error.message);
+      setApiError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSubmit(e);
     }
   };
   
@@ -133,6 +176,12 @@ const LoginPage = () => {
               </Typography>
             </Box>
 
+            {apiError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {apiError}
+              </Alert>
+            )}
+
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
               <TextField
                 margin="normal"
@@ -145,9 +194,11 @@ const LoginPage = () => {
                 autoFocus
                 value={formData.email}
                 onChange={handleChange}
+                onKeyPress={handleKeyPress}
                 error={!!errors.email}
                 helperText={errors.email}
                 sx={{ mb: 2 }}
+                disabled={isLoading}
               />
               <TextField
                 margin="normal"
@@ -160,6 +211,7 @@ const LoginPage = () => {
                 autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
+                onKeyPress={handleKeyPress}
                 error={!!errors.password}
                 helperText={errors.password}
                 InputProps={{
@@ -169,6 +221,7 @@ const LoginPage = () => {
                         aria-label="toggle password visibility"
                         onClick={togglePasswordVisibility}
                         edge="end"
+                        disabled={isLoading}
                       >
                         {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                       </IconButton>
@@ -176,13 +229,30 @@ const LoginPage = () => {
                   ),
                 }}
                 sx={{ mb: 2 }}
+                disabled={isLoading}
               />
               
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {/* Remember me checkbox could go here */}
-                </Box>
-                <Link component={RouterLink} to="/forgot-password" variant="body2" color="primary.main">
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      value="remember"
+                      color="primary"
+                      checked={rememberMe}
+                      onChange={handleRememberMeChange}
+                      disabled={isLoading}
+                    />
+                  }
+                  label="Remember me"
+                />
+                <Link 
+                  component={RouterLink} 
+                  to="/forgot-password" 
+                  variant="body2" 
+                  color="primary.main"
+                  tabIndex={isLoading ? -1 : 0}
+                  sx={{ '&:focus': { outline: isLoading ? 'none' : 'auto' } }}
+                >
                   Forgot password?
                 </Link>
               </Box>
@@ -193,14 +263,28 @@ const LoginPage = () => {
                 variant="contained"
                 color="primary"
                 size="large"
+                disabled={isLoading}
                 sx={{ 
                   mt: 2, 
                   mb: 3,
                   py: 1.5,
-                  fontWeight: 600
+                  fontWeight: 600,
+                  position: 'relative'
                 }}
               >
-                Sign In
+                {isLoading ? (
+                  <>
+                    <CircularProgress
+                      size={24}
+                      sx={{
+                        position: 'absolute',
+                        left: '50%',
+                        marginLeft: '-12px',
+                      }}
+                    />
+                    Signing In...
+                  </>
+                ) : 'Sign In'}
               </Button>
               
               <Divider sx={{ my: 3 }}>
@@ -217,6 +301,7 @@ const LoginPage = () => {
                     color="inherit"
                     startIcon={<GoogleIcon />}
                     sx={{ py: 1 }}
+                    disabled={isLoading}
                   >
                     Google
                   </Button>
@@ -228,6 +313,7 @@ const LoginPage = () => {
                     color="inherit"
                     startIcon={<FacebookIcon />}
                     sx={{ py: 1 }}
+                    disabled={isLoading}
                   >
                     Facebook
                   </Button>
@@ -239,6 +325,7 @@ const LoginPage = () => {
                     color="inherit"
                     startIcon={<AppleIcon />}
                     sx={{ py: 1 }}
+                    disabled={isLoading}
                   >
                     Apple
                   </Button>
@@ -248,7 +335,15 @@ const LoginPage = () => {
               <Box sx={{ textAlign: 'center' }}>
                 <Typography variant="body2" color="text.secondary">
                   Don't have an account?{' '}
-                  <Link component={RouterLink} to="/register" variant="body2" color="primary.main" fontWeight={600}>
+                  <Link 
+                    component={RouterLink} 
+                    to="/register" 
+                    variant="body2" 
+                    color="primary.main" 
+                    fontWeight={600}
+                    tabIndex={isLoading ? -1 : 0}
+                    sx={{ '&:focus': { outline: isLoading ? 'none' : 'auto' } }}
+                  >
                     Sign Up
                   </Link>
                 </Typography>
