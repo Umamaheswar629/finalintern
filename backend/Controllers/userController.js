@@ -111,7 +111,7 @@ exports.getUserProfile = async (req, res) => {
 
 exports.updateUserProfile = async (req, res) => {
   try {
-    const { name, email, age, gender, height, weight, activityLevel, goal, dietType, allergies } = req.body;
+    const { name, email, age, gender, height, weight, activityLevel, goal, dietType, allergies, notificationPreferences } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -130,6 +130,20 @@ exports.updateUserProfile = async (req, res) => {
     user.goal = goal || user.goal;
     user.dietType = dietType || user.dietType;
     user.allergies = allergies || user.allergies;
+
+    if (notificationPreferences) {
+      user.notificationPreferences = {
+        notifications: notificationPreferences.notifications !== undefined 
+          ? notificationPreferences.notifications 
+          : user.notificationPreferences?.notifications || true,
+        emailUpdates: notificationPreferences.emailUpdates !== undefined 
+          ? notificationPreferences.emailUpdates 
+          : user.notificationPreferences?.emailUpdates || true,
+        mealReminders: notificationPreferences.mealReminders !== undefined 
+          ? notificationPreferences.mealReminders 
+          : user.notificationPreferences?.mealReminders || true
+      };
+    }
 
     await user.save();
 
@@ -150,5 +164,124 @@ exports.logoutUser = async (req, res) => {
 };
 
 
+// Add these methods to userController.js
 
+// Change Password
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    // Find user
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+    
+    res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Update Notification Preferences
+exports.updateNotificationPreferences = async (req, res) => {
+  try {
+    const { notifications, emailUpdates, mealReminders } = req.body;
+    
+    // Update user schema to include notification preferences
+    // This requires updating the User model first
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Update notification preferences
+    user.notificationPreferences = {
+      notifications: notifications !== undefined ? notifications : user.notificationPreferences?.notifications,
+      emailUpdates: emailUpdates !== undefined ? emailUpdates : user.notificationPreferences?.emailUpdates,
+      mealReminders: mealReminders !== undefined ? mealReminders : user.notificationPreferences?.mealReminders
+    };
+    
+    await user.save();
+    
+    res.json({ 
+      message: "Notification preferences updated successfully", 
+      notificationPreferences: user.notificationPreferences 
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Upload Profile Picture
+exports.uploadProfilePicture = async (req, res) => {
+  try {
+    // This assumes you're using multer or another middleware for file uploads
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Update profile picture (filename or path)
+    user.profilePicture = req.file.filename; // or req.file.path depending on your storage
+    await user.save();
+    
+    res.json({ 
+      message: "Profile picture updated successfully",
+      profilePicture: user.profilePicture
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Subscription Management
+exports.upgradeSubscription = async (req, res) => {
+  try {
+    // This would integrate with a payment processor like Stripe
+    const { paymentMethod } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Process payment and update subscription (simplified)
+    // In a real application, this would involve more complex payment processing
+    
+    // Update user subscription
+    user.subscription = {
+      plan: "Premium",
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+    };
+    
+    await user.save();
+    
+    res.json({ 
+      message: "Subscription upgraded successfully",
+      subscription: user.subscription
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 

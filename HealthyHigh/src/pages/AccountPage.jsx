@@ -1,5 +1,5 @@
 // src/pages/AccountPage.jsx
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 import { 
@@ -17,7 +17,8 @@ import {
   IconButton,
   Alert,
   Tab,
-  Tabs
+  Tabs,
+  MenuItem
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
@@ -30,27 +31,58 @@ import PrivacyTipIcon from '@mui/icons-material/PrivacyTip';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-
 const AccountPage = () => {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [editMode, setEditMode] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
+    age: '',
+    gender: '',
+    height: '',
+    weight: '',
+    activityLevel: '',
+    goal: '',
+    dietType: [],
+    allergies: [],
+    notifications: true,
+    emailUpdates: true,
+    mealReminders: true
+  });
   
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = "/login";
+          return;
+        }
+        
         const response = await axios.get(`${API_BASE_URL}/users/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setUserData(response.data);
+        
+        // Convert dietType and allergies to strings for form display if they're arrays
+        const user = response.data;
+        user.dietType = Array.isArray(user.dietType) ? user.dietType.join(', ') : user.dietType;
+        user.allergies = Array.isArray(user.allergies) ? user.allergies.join(', ') : user.allergies;
+        
+        // Add UI state properties
+        user.notifications = user.notificationPreferences?.notifications ?? true;
+        user.emailUpdates = user.notificationPreferences?.emailUpdates ?? true;
+        user.mealReminders = user.notificationPreferences?.mealReminders ?? true;
+        
+        setUserData(user);
       } catch (err) {
-        setError("Failed to load profile. Please try again.");
+        setErrorMessage("Failed to load profile. Please try again.");
+        console.error("Error fetching profile:", err);
       } finally {
         setLoading(false);
       }
@@ -59,8 +91,41 @@ const AccountPage = () => {
     fetchUserProfile();
   }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return (
+    <Box sx={{ py: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+      <Typography>Loading your profile...</Typography>
+    </Box>
+  );
+
+// Add this function to the AccountPage component
+const saveNotificationPreferences = async () => {
+  try {
+    setErrorMessage('');
+    const token = localStorage.getItem('token');
+    
+    await axios.put(
+      `${API_BASE_URL}/users/notification-preferences`, 
+      {
+        notifications: userData.notifications,
+        emailUpdates: userData.emailUpdates,
+        mealReminders: userData.mealReminders
+      },
+      { headers: { Authorization: `Bearer ${token}` }}
+    );
+    
+    setSuccessMessage('Notification preferences updated successfully!');
+    
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessage('');
+    }, 3000);
+  } catch (error) {
+    setErrorMessage('Failed to update notification preferences. Please try again.');
+    console.error("Update failed:", error);
+  }
+};
+
+
 
   // Handle tab change
   const handleTabChange = (event, newValue) => {
@@ -86,20 +151,52 @@ const AccountPage = () => {
   };
 
   // Handle save profile
-  const handleSaveProfile = () => {
-    // Here you would typically save the data to your backend
-    setEditMode(false);
-    setSuccessMessage('Profile updated successfully!');
-    
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      setSuccessMessage('');
-    }, 3000);
+  const handleSaveProfile = async () => {
+    try {
+      setErrorMessage('');
+      const token = localStorage.getItem('token');
+      
+      // Convert comma-separated strings to arrays
+      const dataToSend = {
+        ...userData,
+        dietType: typeof userData.dietType === 'string' ? userData.dietType.split(',').map(item => item.trim()) : userData.dietType,
+        allergies: typeof userData.allergies === 'string' ? userData.allergies.split(',').map(item => item.trim()) : userData.allergies,
+        //  notification preferences
+        notificationPreferences: {
+        notifications: userData.notifications,
+        emailUpdates: userData.emailUpdates,
+        mealReminders: userData.mealReminders
+      }
+      
+      };
+      
+      await axios.put(
+        `${API_BASE_URL}/users/profile`, 
+        dataToSend,
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      setEditMode(false);
+      setSuccessMessage('Profile updated successfully!');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+    } catch (error) {
+      setErrorMessage('Failed to update profile. Please try again.');
+      console.error("Update failed:", error);
+    }
   };
 
   const handleLogout = async () => {
     try {
-      await axios.post(`${API_BASE_URL}/users/logout`);
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API_BASE_URL}/users/logout`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -109,6 +206,21 @@ const AccountPage = () => {
     window.location.href = "/login"; // Redirect to login page
   };
   
+  // Calculate membership duration
+  const memberSince = () => {
+    // This is placeholder logic - in a real app you would calculate this from user data
+    const createdAt = userData.createdAt ? new Date(userData.createdAt) : new Date();
+    const now = new Date();
+    const diffInMonths = (now.getFullYear() - createdAt.getFullYear()) * 12 + (now.getMonth() - createdAt.getMonth());
+    
+    if (diffInMonths < 1) return "less than a month";
+    if (diffInMonths === 1) return "1 month";
+    if (diffInMonths < 12) return `${diffInMonths} months`;
+    
+    const years = Math.floor(diffInMonths / 12);
+    if (years === 1) return "1 year";
+    return `${years} years`;
+  };
 
   return (
     <Box sx={{ py: 4, bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -125,6 +237,13 @@ const AccountPage = () => {
         {successMessage && (
           <Alert severity="success" sx={{ mb: 3 }}>
             {successMessage}
+          </Alert>
+        )}
+        
+        {/* Error message */}
+        {errorMessage && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {errorMessage}
           </Alert>
         )}
 
@@ -156,7 +275,7 @@ const AccountPage = () => {
                     fontSize: '3rem'
                   }}
                 >
-                  {userData.name.split(' ').map(n => n[0]).join('')}
+                  {userData.name ? userData.name.split(' ').map(n => n[0]).join('') : ''}
                 </Avatar>
                 <IconButton 
                   sx={{ 
@@ -179,11 +298,11 @@ const AccountPage = () => {
               </Typography>
               
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                @{userData.username}
+                {userData.email}
               </Typography>
               
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Member since {userData.dateJoined}
+                Member since {memberSince()}
               </Typography>
 
               <Button 
@@ -201,6 +320,7 @@ const AccountPage = () => {
                 variant="outlined" 
                 color="error" 
                 startIcon={<LogoutIcon />}
+                onClick={handleLogout}
                 sx={{ borderRadius: '20px' }}
                 fullWidth
               >
@@ -283,33 +403,23 @@ const AccountPage = () => {
                   </Box>
 
                   <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12}>
                       <TextField
                         fullWidth
                         label="Full Name"
                         name="name"
-                        value={userData.name}
+                        value={userData.name || ''}
                         onChange={handleInputChange}
                         disabled={!editMode}
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Username"
-                        name="username"
-                        value={userData.username}
-                        onChange={handleInputChange}
-                        disabled={!editMode}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12}>
                       <TextField
                         fullWidth
                         label="Email Address"
                         name="email"
                         type="email"
-                        value={userData.email}
+                        value={userData.email || ''}
                         onChange={handleInputChange}
                         disabled={!editMode}
                       />
@@ -317,12 +427,67 @@ const AccountPage = () => {
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Phone Number"
-                        name="phone"
-                        value={userData.phone}
+                        label="Age"
+                        name="age"
+                        type="number"
+                        value={userData.age || ''}
                         onChange={handleInputChange}
                         disabled={!editMode}
                       />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Gender"
+                        name="gender"
+                        select
+                        value={userData.gender || ''}
+                        onChange={handleInputChange}
+                        disabled={!editMode}
+                      >
+                        <MenuItem value="Male">Male</MenuItem>
+                        <MenuItem value="Female">Female</MenuItem>
+                        <MenuItem value="Other">Other</MenuItem>
+                      </TextField>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Height (cm)"
+                        name="height"
+                        type="number"
+                        value={userData.height || ''}
+                        onChange={handleInputChange}
+                        disabled={!editMode}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Weight (kg)"
+                        name="weight"
+                        type="number"
+                        value={userData.weight || ''}
+                        onChange={handleInputChange}
+                        disabled={!editMode}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Activity Level"
+                        name="activityLevel"
+                        select
+                        value={userData.activityLevel || ''}
+                        onChange={handleInputChange}
+                        disabled={!editMode}
+                      >
+                        <MenuItem value="Sedentary">Sedentary</MenuItem>
+                        <MenuItem value="Lightly Active">Lightly Active</MenuItem>
+                        <MenuItem value="Moderately Active">Moderately Active</MenuItem>
+                        <MenuItem value="Very Active">Very Active</MenuItem>
+                        <MenuItem value="Extra Active">Extra Active</MenuItem>
+                      </TextField>
                     </Grid>
                     
                     {editMode && (
@@ -371,12 +536,12 @@ const AccountPage = () => {
                       <TextField
                         fullWidth
                         label="Dietary Preferences"
-                        name="dietaryPreferences"
-                        value={userData.dietType}
+                        name="dietType"
+                        value={userData.dietType || ''}
                         onChange={handleInputChange}
                         disabled={!editMode}
                         placeholder="e.g., Vegetarian, Vegan, Keto, Paleo"
-                        helperText="Enter any dietary preferences you follow"
+                        helperText="Enter dietary preferences separated by commas"
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -384,41 +549,26 @@ const AccountPage = () => {
                         fullWidth
                         label="Allergies"
                         name="allergies"
-                        value={userData.allergies}
+                        value={userData.allergies || ''}
                         onChange={handleInputChange}
                         disabled={!editMode}
                         placeholder="e.g., Nuts, Dairy, Gluten"
-                        helperText="Enter any food allergies or intolerances"
+                        helperText="Enter allergies separated by commas"
                       />
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Daily Calorie Goal"
-                        name="calorieGoal"
-                        type="number"
-                        value={userData.calorieGoal}
-                        onChange={handleInputChange}
-                        disabled={!editMode}
-                        InputProps={{ endAdornment: 'kcal' }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12}>
                       <TextField
                         fullWidth
                         label="Weight Goal"
-                        name="weightGoal"
+                        name="goal"
                         select
-                        value={userData.weightGoal}
+                        value={userData.goal || ''}
                         onChange={handleInputChange}
                         disabled={!editMode}
-                        SelectProps={{
-                          native: true,
-                        }}
                       >
-                        <option value="Lose Weight">Lose Weight</option>
-                        <option value="Maintain Weight">Maintain Weight</option>
-                        <option value="Gain Weight">Gain Weight</option>
+                        <MenuItem value="Lose weight">Lose Weight</MenuItem>
+                        <MenuItem value="Maintain weight">Maintain Weight</MenuItem>
+                        <MenuItem value="Gain weight">Gain Weight</MenuItem>
                       </TextField>
                     </Grid>
                     
@@ -457,7 +607,7 @@ const AccountPage = () => {
                     <FormControlLabel
                       control={
                         <Switch 
-                          checked={userData.notifications}
+                          checked={userData.notifications || false}
                           onChange={handleToggleChange}
                           name="notifications"
                           color="primary"
@@ -474,7 +624,7 @@ const AccountPage = () => {
                     <FormControlLabel
                       control={
                         <Switch 
-                          checked={userData.emailUpdates}
+                          checked={userData.emailUpdates || false}
                           onChange={handleToggleChange}
                           name="emailUpdates"
                           color="primary"
@@ -491,7 +641,7 @@ const AccountPage = () => {
                     <FormControlLabel
                       control={
                         <Switch 
-                          checked={userData.mealReminders}
+                          checked={userData.mealReminders || false}
                           onChange={handleToggleChange}
                           name="mealReminders"
                           color="primary"
@@ -507,7 +657,7 @@ const AccountPage = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
                     <Button 
                       variant="contained" 
-                      onClick={handleSaveProfile}
+                      onClick={saveNotificationPreferences}
                       sx={{ borderRadius: '20px' }}
                     >
                       Save Preferences
@@ -531,7 +681,7 @@ const AccountPage = () => {
                       </Typography>
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      Last changed: 3 months ago
+                      It's a good practice to change your password regularly
                     </Typography>
                     <Button 
                       variant="outlined"

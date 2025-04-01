@@ -3,27 +3,24 @@ const express = require("express");
 const { 
   getAllRecipes,
   getRecipeById,
-  createRecipe,
-  updateRecipe,
-  deleteRecipe,
-  getRecommendedRecipes,
   searchRecipes,
-  filterRecipes
+  toggleFavorite,
+  getUserFavoriteRecipes
 } = require("../Controllers/recipeController");
 const authMiddleware = require("../Middlewares/authMiddleware");
 
 const router = express.Router();
 
 // Public routes
-router.get("/", getAllRecipes);
-router.get("/search", searchRecipes);
-router.get("/filter", filterRecipes);
-router.get("/:id", getRecipeById);
+router.get('/', getAllRecipes);
+router.get('/:id', getRecipeById);
+router.get('/search', searchRecipes);
+
 
 // Protected routes
-router.post("/", authMiddleware, createRecipe);
-router.put("/:id", authMiddleware, updateRecipe);
-router.delete("/:id", authMiddleware, deleteRecipe);
-router.get("/recommended/user", authMiddleware, getRecommendedRecipes);
+router.post('/:id/favorite', authMiddleware, toggleFavorite);
+router.get('/favorites/my', authMiddleware, getUserFavoriteRecipes);
+
+
 
 module.exports = router;

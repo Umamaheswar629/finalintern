@@ -23,6 +23,7 @@ import AccountPage from './pages/AccountPage';
 import InviteFriendsPage from './pages/InviteFriends';
 import CollectionsPage from './pages/CollectionPage';
 import PrivateRoute from "./routes/PrivateRoute"; 
+import RecipeDetails from './pages/recipeDetailPage';
 
 function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -104,9 +105,9 @@ function App() {
                   <Routes>
                     <Route index element={<DashboardPage />} />
                     <Route path="account" element={<AccountPage />} />
-                    <Route path="groceries" element={<GroceriesPage />} />
-                    <Route path="recipes" element={<RecipesPage />} />  
+                    <Route path="groceries" element={<GroceriesPage />} /> 
                     <Route path="discover" element={<DiscoverPage />} />
+                    <Route path="/:id" element={<RecipeDetails />} /> 
                     <Route path="meal-planner" element={<MealPlannerPage />} />
                     <Route path="saved-plans" element={<SavedPlansPage />} />
                     <Route path="how-it-works" element={<HowItWorksPage />} />
@@ -119,6 +120,9 @@ function App() {
             }
           />
           </Route>
+
+          {/* Public routes for recipe details */}
+          <Route path="/recipes/:id" element={<RecipeDetails />} />
           
           {/* Redirects */}
           <Route path="/login" element={<Navigate to="/dashboard/login" replace />} />
@@ -128,7 +132,6 @@ function App() {
           <Route path="/how-it-works" element={<Navigate to="/dashboard/how-it-works" replace />} />
           <Route path="/groceries" element={<Navigate to="/dashboard/groceries" replace />} />
           <Route path="/discover" element={<Navigate to="/dashboard/discover" replace />} />
-          <Route path="/recipes" element={<Navigate to="/dashboard/recipes" replace />} />
           <Route path="/account" element={<Navigate to="/dashboard/account" replace />} />
           <Route path="/invite" element={<Navigate to="/dashboard/invite" replace />} />
           <Route path="/collections" element={<Navigate to="/dashboard/collections" replace />} />

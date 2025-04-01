@@ -13,7 +13,18 @@ const userSchema = new mongoose.Schema({
   dietType: [{ type: String }], // e.g., ["Vegetarian", "Keto", "Gluten-Free"]
   allergies: [{ type: String }], // e.g., ["Peanuts", "Dairy"]
   likedRecipes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Recipe",default:[] }],
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  profilePicture: { type: String, default: "" },
+  notificationPreferences: {
+  notifications: { type: Boolean, default: "" },
+  emailUpdates: { type: Boolean, default: "" },
+  mealReminders: { type: Boolean, default: ""}
+},
+subscription: {
+  plan: { type: String, enum: ["Free", "Premium"], default: "Free" },
+  startDate: { type: Date },
+  endDate: { type: Date }
+}
 });
 
 module.exports = mongoose.model("User", userSchema);

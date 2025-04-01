@@ -86,7 +86,7 @@ GET http://localhost:5000/api/recipes
 Accept: application/json
 
 ### Get a specific recipe by ID (Replace `<recipe_id>` with a real ID)
-GET http://localhost:5000/api/recipes/67d3d080c5715dffe86acb4c
+GET http://localhost:5000/api/recipes/67e4f23059b2d50d07fdc1ba
 Accept: application/json
 
 
