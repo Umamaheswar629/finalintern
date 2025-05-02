@@ -20,8 +20,8 @@ POST http://localhost:5000/api/users/login
 Content-Type: application/json
 
 {
-  "email": "johnn@example.com",
-  "password": "12345678"
+  "email": "charishma.sangaraju@gmail.com",
+  "password": "Abcd@1234"
 }
 
 ###
@@ -113,3 +113,24 @@ Accept: application/json
 ### Filter recipes based on macronutrients
 GET http://localhost:5000/api/recipes/filter?minProtein=50&maxCarbs=20
 Accept: application/json
+
+### Meal generator
+POST http://localhost:5000/api/meal-plans/generate
+Content-Type: application/json
+
+{
+  "dietType": "vegetarian",
+  "restrictions": ["nuts", "gluten"],
+  "calories": 2000,
+  "days": 7,
+  "meals": 3
+}
+
+###
+post http://localhost:5000/api/user/meals/generate 
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZDZiMGUyZmNlNTgxOTZjN2ZmNDkyZCIsImlhdCI6MTc0NjE4NjIxOCwiZXhwIjoxNzQ2NzkxMDE4fQ.ROmyWiUzEN5goR9cnx4yBGnx1HGJGKhlAVEooHD-NQI
+
+{}
+
+###

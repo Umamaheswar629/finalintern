@@ -39,10 +39,10 @@ function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // ✅ Remove token
-    localStorage.removeItem("userInfo"); // ✅ Clear user data
+    localStorage.removeItem("token");
+    localStorage.removeItem("userInfo");
     setIsAuthenticated(false);
-    window.location.href = "/login"; // ✅ Redirect to login
+    window.location.href = "/login";
   };
 
   return (
@@ -50,8 +50,9 @@ function App() {
       <CssBaseline />
       <Router>
         <Routes>
-        <Route path="register" element={<SignUpPage />} />
-        <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<SignUpPage />} />
+          <Route path="login" element={<LoginPage />} />
+          
           {/* Landing page route */}
           <Route 
             path="/" 
@@ -65,60 +66,74 @@ function App() {
               </Box>
             } 
           />
-          
+
+          {/* Meal Planner Page - Public Route */}
+          <Route 
+            path="/meal-plans" 
+            element={
+              <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <Navbar />
+                <Box component="main" sx={{ flexGrow: 1 }}>
+                  <MealPlannerPage />
+                </Box>
+                <Footer />
+              </Box>
+            } 
+          />
+
           {/* Dashboard and app routes with sidebar */}
           <Route element={<PrivateRoute />}>
-          <Route
-            path="/dashboard/*"
-            element={
-              <Box sx={{ display: 'flex' }}>
-                <Sidebar mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
-                <Box 
-                  component="main" 
-                  sx={{ 
-                    flexGrow: 1, 
-                    width: { md: `calc(100% - 260px)` },
-                    ml: { md: '260px' }
-                  }}
-                >
-                  {/* Mobile menu button */}
+            <Route
+              path="/dashboard/*"
+              element={
+                <Box sx={{ display: 'flex' }}>
+                  <Sidebar mobileOpen={mobileOpen} handleDrawerToggle={handleDrawerToggle} />
                   <Box 
+                    component="main" 
                     sx={{ 
-                      display: { xs: 'block', md: 'none' }, 
-                      position: 'fixed',
-                      top: 10,
-                      left: 10,
-                      zIndex: 1100
+                      flexGrow: 1, 
+                      width: { md: `calc(100% - 260px)` },
+                      ml: { md: '260px' }
                     }}
                   >
-                    <IconButton
-                      color="inherit"
-                      aria-label="open drawer"
-                      edge="start"
-                      onClick={handleDrawerToggle}
-                      sx={{ bgcolor: 'background.paper', boxShadow: 1 }}
+                    {/* Mobile menu button */}
+                    <Box 
+                      sx={{ 
+                        display: { xs: 'block', md: 'none' }, 
+                        position: 'fixed',
+                        top: 10,
+                        left: 10,
+                        zIndex: 1100
+                      }}
                     >
-                      <MenuIcon />
-                    </IconButton>
+                      <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        edge="start"
+                        onClick={handleDrawerToggle}
+                        sx={{ bgcolor: 'background.paper', boxShadow: 1 }}
+                      >
+                        <MenuIcon />
+                      </IconButton>
+                    </Box>
+                    <Toolbar />
+                    <Routes>
+                      <Route index element={<DashboardPage />} />
+                      <Route path="account" element={<AccountPage />} />
+                      <Route path="groceries" element={<GroceriesPage />} />
+                      <Route path="discover" element={<DiscoverPage />} />
+                      <Route path="/:id" element={<RecipeDetails />} />
+
+                      <Route path="meal-plans" element={<MealPlannerPage />} />
+                      <Route path="saved-plans" element={<SavedPlansPage />} />
+                      <Route path="how-it-works" element={<HowItWorksPage />} />
+                      <Route path="invite" element={<InviteFriendsPage />} />
+                      <Route path="collections" element={<CollectionsPage />} />
+                    </Routes>
                   </Box>
-                  <Toolbar />
-                  <Routes>
-                    <Route index element={<DashboardPage />} />
-                    <Route path="account" element={<AccountPage />} />
-                    <Route path="groceries" element={<GroceriesPage />} /> 
-                    <Route path="discover" element={<DiscoverPage />} />
-                    <Route path="/:id" element={<RecipeDetails />} /> 
-                    <Route path="meal-planner" element={<MealPlannerPage />} />
-                    <Route path="saved-plans" element={<SavedPlansPage />} />
-                    <Route path="how-it-works" element={<HowItWorksPage />} />
-                    <Route path="invite" element={<InviteFriendsPage />} />
-                    <Route path="collections" element={<CollectionsPage />} />
-                    {/* Add more routes for dashboard features */}
-                  </Routes>
                 </Box>
-              </Box>
-            }
-          />
+              }
+            />
           </Route>
 
           {/* Public routes for recipe details */}
@@ -127,7 +142,6 @@ function App() {
           {/* Redirects */}
           <Route path="/login" element={<Navigate to="/dashboard/login" replace />} />
           <Route path="/register" element={<Navigate to="/dashboard/register" replace />} />
-          <Route path="/meal-planner" element={<Navigate to="/dashboard/meal-planner" replace />} />
           <Route path="/saved-plans" element={<Navigate to="/dashboard/saved-plans" replace />} />
           <Route path="/how-it-works" element={<Navigate to="/dashboard/how-it-works" replace />} />
           <Route path="/groceries" element={<Navigate to="/dashboard/groceries" replace />} />

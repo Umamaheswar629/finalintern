@@ -16,9 +16,9 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   profilePicture: { type: String, default: "" },
   notificationPreferences: {
-  notifications: { type: Boolean, default: "" },
-  emailUpdates: { type: Boolean, default: "" },
-  mealReminders: { type: Boolean, default: ""}
+  notifications: { type: Boolean, default: true },
+  emailUpdates: { type: Boolean, default: true },
+  mealReminders: { type: Boolean, default: true}
 },
 subscription: {
   plan: { type: String, enum: ["Free", "Premium"], default: "Free" },

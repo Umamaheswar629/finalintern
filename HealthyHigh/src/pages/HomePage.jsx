@@ -43,7 +43,7 @@ const HomePage = () => {
             color="secondary" 
             size="large"
             component={RouterLink}
-            to="/meal-planner"
+            to="/meal-plans"
             sx={{ 
               px: 4, 
               py: 1.5,
