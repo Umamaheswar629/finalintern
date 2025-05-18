@@ -77,11 +77,6 @@ const dietOptions = [
   { id: 'lowcarb', name: 'Low Carb', description: 'Reduced carbohydrate intake' },
 ];
 
-const commonAllergies = [
-  'Dairy', 'Eggs', 'Peanuts', 'Tree Nuts', 'Shellfish', 
-  'Fish', 'Wheat', 'Soy', 'Gluten', 'Sesame'
-];
-
 const activityLevels = [
   { value: 'Sedentary', label: 'Sedentary', description: 'Little to no exercise' },
   { value: 'Lightly Active', label: 'Lightly Active', description: '1-3 days/week' },
@@ -107,8 +102,6 @@ const SignUpPage = () => {
     goalWeight: '',
     activityLevel:'',
     dietType: '',
-    allergies: [],
-    avoidFoods: [],
     mealsPerDay: 3,
     includedBreakfast: true,
     includedLunch: true,
@@ -117,11 +110,11 @@ const SignUpPage = () => {
     calorieGoal: '',
   });
 
+  // Removed "Food Restrictions" from steps
   const steps = [
     'Create Account',
     'Physical Stats',
     'Diet Type',
-    'Food Restrictions',
     'Meal Preferences',
     'Goal Setting'
   ];
@@ -196,20 +189,6 @@ const validateActivityLevel = (activityLevel) => {
 
 const validateDietType = (dietType) => {
   if (!dietType) return "Please select a diet type.";
-  return "";
-};
-
-const validateFoodRestrictions = (avoidFoods) => {
-  if (!avoidFoods || avoidFoods.length === 0) {
-    return "Please enter at least one food restriction.";
-  }
-  return "";
-};
-
-const validateAllergies = (allergies) => {
-  if (!allergies || allergies.length === 0) {
-    return "Please select at least one allergy.";
-  }
   return "";
 };
 
@@ -314,53 +293,6 @@ const handleDietSelect = (dietId) => {
   setErrors((prev) => ({ ...prev, dietType: validateDietType(dietId) }));
 };
 
-const handleAllergyToggle = (allergen) => {
-  setFormData((prev) => {
-    const updatedAllergies = prev.allergies.includes(allergen)
-      ? prev.allergies.filter(a => a !== allergen)
-      : [...prev.allergies, allergen];
-
-    return { ...prev, allergies: updatedAllergies };
-  });
-
-  setErrors((prev) => ({ ...prev, allergies: validateAllergies(formData.allergies) }));
-};
-
-
-  const sanitizeFoodInput = (food) => {
-    return food.trim();
-  };
-  
-  const handleAddAvoidFood = (food) => {
-    const sanitizedFood = food.trim();
-  
-    if (!sanitizedFood) {
-      setErrors((prev) => ({ ...prev, avoidFoods: "Food name cannot be empty." }));
-      return;
-    }
-  
-    if (formData.avoidFoods.includes(sanitizedFood)) {
-      setErrors((prev) => ({ ...prev, avoidFoods: "Food already added." }));
-      return;
-    }
-  
-    setFormData((prev) => ({
-      ...prev,
-      avoidFoods: [...prev.avoidFoods, sanitizedFood],
-    }));
-  
-    setErrors((prev) => ({ ...prev, avoidFoods: "" }));
-  };
-  
-  
-  
-  const handleRemoveAvoidFood = (food) => {
-    setFormData((prev) => ({
-      ...prev,
-      avoidFoods: prev.avoidFoods.filter(f => f !== food),
-    }));
-  };
-  
 
   const handleNext = () => {
     let stepErrors = {};
@@ -388,13 +320,7 @@ const handleAllergyToggle = (allergen) => {
         dietType: validateDietType(formData.dietType),
       };
     } else if (activeStep === 3) {  
-      // Step 4: Food Restrictions (Avoided foods & Allergies)
-      stepErrors = {
-        avoidFoods: validateFoodRestrictions(formData.avoidFoods),
-        allergies: validateAllergies(formData.allergies),
-      };
-    } else if (activeStep === 4) {  
-      // Step 5: Meal Preferences
+      // Step 4: Meal Preferences (previously step 5)
       stepErrors = {
         meals: validateMealSelection(formData.mealsPerDay, formData),
       };
@@ -421,9 +347,6 @@ const handleAllergyToggle = (allergen) => {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-
-
-
     const finalErrors = {
       goalWeight: validateGoalWeight(formData.goalWeight),
       calorieGoal: validateCalorieGoal(formData.calorieGoal),
@@ -457,21 +380,6 @@ const handleAllergyToggle = (allergen) => {
       alert("Signup failed. Please try again.");
     }
     
-  };
-  
-
-  // Custom component for the new avoided food input
-  const [newAvoidFood, setNewAvoidFood] = useState('');
-  
-  const handleNewAvoidFoodChange = (e) => {
-    setNewAvoidFood(e.target.value);
-  };
-
-  const handleNewAvoidFoodKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleAddAvoidFood(newAvoidFood);
-      e.preventDefault();
-    }
   };
   
   // Render different form steps
@@ -758,83 +666,6 @@ const handleAllergyToggle = (allergen) => {
         return (
           <Box>
             <Typography variant="h5" fontWeight="600" gutterBottom>
-              Food Allergies & Restrictions
-            </Typography>
-            <Typography variant="body1" color="text.secondary" paragraph>
-              Let us know about any allergies or foods you want to avoid.
-            </Typography>
-            
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Common Allergies
-              </Typography>
-              <Grid container spacing={1} sx={{ mb: 4 }}>
-                {commonAllergies.map((allergy) => (
-                  <Grid item key={allergy}>
-                    <Chip
-                      label={allergy}
-                      onClick={() => handleAllergyToggle(allergy)}
-                      color={formData.allergies.includes(allergy) ? "primary" : "default"}
-                      variant={formData.allergies.includes(allergy) ? "filled" : "outlined"}
-                      sx={{ 
-                        borderRadius: '16px',
-                        '&.MuiChip-colorPrimary': {
-                          backgroundColor: theme.palette.primary.main,
-                          color: '#fff',
-                        }
-                      }}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-              
-              <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                Foods You Want to Avoid
-              </Typography>
-              <TextField
-                fullWidth
-                label="Add food to avoid"
-                value={newAvoidFood}
-                onChange={(e) => setNewAvoidFood(e.target.value.trimStart())}
-                onKeyPress={handleNewAvoidFoodKeyPress}
-                margin="normal"
-                placeholder="Type and press Enter"
-                helperText={errors.avoidFoods || "Press Enter to add to your list"}
-                error={!!errors.avoidFoods}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <NoMealsIcon />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>
-                {formData.avoidFoods.map((food) => (
-                  <Chip
-                    key={food}
-                    label={food}
-                    onDelete={() => handleRemoveAvoidFood(food)}
-                    color="error"
-                    variant="outlined"
-                    sx={{ borderRadius: '16px' }}
-                  />
-                ))}
-                {formData.avoidFoods.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    No foods added yet
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-          </Box>
-        );
-      
-      case 4:
-        return (
-          <Box>
-            <Typography variant="h5" fontWeight="600" gutterBottom>
               Meal Preferences
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph>
@@ -923,7 +754,7 @@ const handleAllergyToggle = (allergen) => {
           </Box>
         );
       
-      case 5:
+      case 4:
         return (
           <Box>
             <Typography variant="h5" fontWeight="600" gutterBottom>

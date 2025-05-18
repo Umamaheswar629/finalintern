@@ -31,6 +31,7 @@ import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import LightModeIcon from '@mui/icons-material/LightMode';
 
+
 // Custom styled list item for navigation
 const NavItem = styled(ListItem)(({ theme, active }) => ({
   borderRadius: theme.spacing(1),
@@ -82,10 +83,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
       <Box sx={{ p: 2 }}>
         {/* User Profile Section */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>Mm</Avatar>
+          <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>Hh</Avatar>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-              mannemohith
+              HealthiHigh
             </Typography>
             <Button 
               variant="contained" 
