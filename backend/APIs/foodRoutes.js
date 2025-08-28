@@ -1,4 +1,4 @@
-// APIs/foodRoutes.js
+// APIs
 const express = require("express");
 const { 
   getAllFoods, 
